@@ -118,6 +118,41 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         ${qBittorrent_SOURCE_DIR}/dist/mac/qbittorrent_mac.icns
         ${qBittorrent_SOURCE_DIR}/src/icons/qbittorrent-tray-light.svg
     )
+
+    # Copy the platform plugin (cocoa) and TLS backends into the bundle's
+    # PlugIns directory so the app can boot a GUI and negotiate HTTPS.
+    # `qt.conf` (in Contents/Resources) sets `Plugins = PlugIns`, so Qt only
+    # looks under Contents/PlugIns; without these the app aborts at startup
+    # (`qFatal("Could not load the Qt platform plugin 'cocoa'...")`) or runs
+    # with HTTPS broken (`qt.network.ssl: No functional TLS backend was found`).
+    # The OpenSSL backend plugin links against the system Homebrew OpenSSL by
+    # absolute path, so bundling libssl/libcrypto is not required.
+    get_target_property(_QBT_QMAKE_EXECUTABLE Qt::qmake IMPORTED_LOCATION)
+    execute_process(COMMAND "${_QBT_QMAKE_EXECUTABLE}" -query QT_INSTALL_PLUGINS
+                    OUTPUT_VARIABLE _QBT_QT_PLUGINS_DIR
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(_QBT_BUNDLE_PLUGINS_DIR "$<TARGET_FILE_DIR:qbt_app>/../PlugIns")
+
+    set(_QBT_PLUGIN_COPIES)
+    foreach(_QBT_PLUGIN_REL
+            platforms/libqcocoa.dylib
+            tls/libqopensslbackend.dylib
+            tls/libqsecuretransportbackend.dylib
+            tls/libqcertonlybackend.dylib)
+        get_filename_component(_QBT_PLUGIN_SUBDIR "${_QBT_PLUGIN_REL}" DIRECTORY)
+        list(APPEND _QBT_PLUGIN_COPIES
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+                "${_QBT_BUNDLE_PLUGINS_DIR}/${_QBT_PLUGIN_SUBDIR}"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${_QBT_QT_PLUGINS_DIR}/${_QBT_PLUGIN_REL}"
+                "${_QBT_BUNDLE_PLUGINS_DIR}/${_QBT_PLUGIN_REL}")
+    endforeach()
+
+    add_custom_command(TARGET qbt_app POST_BUILD
+        ${_QBT_PLUGIN_COPIES}
+        COMMENT "Copying required Qt plugins into bundle's PlugIns directory..."
+        VERBATIM
+    )
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set_target_properties(qbt_app PROPERTIES WIN32_EXECUTABLE ON)
     if (MINGW)

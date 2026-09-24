@@ -78,6 +78,11 @@ target_sources(qbt_lua PRIVATE
 )
 
 target_include_directories(qbt_lua
+    # BEFORE so the bundled Lua 5.5 headers win over the Homebrew Lua 5.4
+    # headers that Homebrew's qtbase cask pulls into /opt/homebrew/include
+    # (see PR for context: bundled Lua needs LUA_VERSION_MAJOR_N etc., which
+    # 5.4 lacks).
+    BEFORE
     PUBLIC "include"
     PRIVATE "include/lua"
 )

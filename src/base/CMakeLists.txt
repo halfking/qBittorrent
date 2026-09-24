@@ -291,8 +291,6 @@ endif()
 
 if (PLUGINS)
     add_subdirectory(3rdparty/lua)
-    set_target_properties(qbt_lua PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES $<TARGET_PROPERTY:qbt_lua,INTERFACE_INCLUDE_DIRECTORIES>)
-
     add_subdirectory(3rdparty/luabridge)
     set_target_properties(qbt_luabridge PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES $<TARGET_PROPERTY:qbt_luabridge,INTERFACE_INCLUDE_DIRECTORIES>)
 
