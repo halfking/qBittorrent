@@ -133,26 +133,37 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
     set(_QBT_BUNDLE_PLUGINS_DIR "$<TARGET_FILE_DIR:qbt_app>/../PlugIns")
 
+    # Each plugin is optional at copy time: minimal or custom Qt builds may
+    # omit some TLS backends.  We just skip missing ones (and warn) instead
+    # of failing the build.
     set(_QBT_PLUGIN_COPIES)
     foreach(_QBT_PLUGIN_REL
             platforms/libqcocoa.dylib
             tls/libqopensslbackend.dylib
             tls/libqsecuretransportbackend.dylib
             tls/libqcertonlybackend.dylib)
+        set(_QBT_PLUGIN_SRC "${_QBT_QT_PLUGINS_DIR}/${_QBT_PLUGIN_REL}")
+        if (NOT EXISTS "${_QBT_PLUGIN_SRC}")
+            message(WARNING "qBittorrent macOS bundle: Qt plugin not found, "
+                    "skipping: ${_QBT_PLUGIN_SRC}")
+            continue()
+        endif()
         get_filename_component(_QBT_PLUGIN_SUBDIR "${_QBT_PLUGIN_REL}" DIRECTORY)
         list(APPEND _QBT_PLUGIN_COPIES
             COMMAND ${CMAKE_COMMAND} -E make_directory
                 "${_QBT_BUNDLE_PLUGINS_DIR}/${_QBT_PLUGIN_SUBDIR}"
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${_QBT_QT_PLUGINS_DIR}/${_QBT_PLUGIN_REL}"
+                "${_QBT_PLUGIN_SRC}"
                 "${_QBT_BUNDLE_PLUGINS_DIR}/${_QBT_PLUGIN_REL}")
     endforeach()
 
-    add_custom_command(TARGET qbt_app POST_BUILD
-        ${_QBT_PLUGIN_COPIES}
-        COMMENT "Copying required Qt plugins into bundle's PlugIns directory..."
-        VERBATIM
-    )
+    if (_QBT_PLUGIN_COPIES)
+        add_custom_command(TARGET qbt_app POST_BUILD
+            ${_QBT_PLUGIN_COPIES}
+            COMMENT "Copying required Qt plugins into bundle's PlugIns directory..."
+            VERBATIM
+        )
+    endif()
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set_target_properties(qbt_app PROPERTIES WIN32_EXECUTABLE ON)
     if (MINGW)

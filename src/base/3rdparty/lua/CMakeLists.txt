@@ -81,7 +81,10 @@ target_include_directories(qbt_lua
     # BEFORE so the bundled Lua 5.5 headers win over the Homebrew Lua 5.4
     # headers that Homebrew's qtbase cask pulls into /opt/homebrew/include
     # (see PR for context: bundled Lua needs LUA_VERSION_MAJOR_N etc., which
-    # 5.4 lacks).
+    # 5.4 lacks).  We deliberately do NOT mark these as SYSTEM because that
+    # would put them at the tail of -isystem and let Homebrew Lua win again.
+    # The warnings this exposes (-Wold-style-cast in lauxlib.h) are
+    # suppressed at the use site in plugin.cpp / pluginsengine.cpp.
     BEFORE
     PUBLIC "include"
     PRIVATE "include/lua"

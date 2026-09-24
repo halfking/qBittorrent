@@ -28,8 +28,16 @@
 
 #pragma once
 
+// See plugin.h for why -Wold-style-cast is suppressed around the Lua includes.
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 #include <lua/lua.hpp>
 #include <LuaBridge/LuaBridge.h>
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 #include <QHash>
 #include <QList>

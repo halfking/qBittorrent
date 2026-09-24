@@ -30,8 +30,20 @@
 
 #include <memory>
 
+// Lua's bundled headers (lauxlib.h transitively via lua.hpp) trip
+// -Wold-style-cast on macro definitions like LUAL_BUFFERSIZE.  The bundled
+// Lua is intentionally NOT marked as SYSTEM include (see src/base/3rdparty/
+// lua/CMakeLists.txt) because that would let Homebrew's Lua 5.4 headers
+// win the search-order race.  Suppress the warning just for the Lua includes.
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 #include <lua/lua.hpp>
 #include <LuaBridge/LuaBridge.h>
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 #include <QObject>
 
