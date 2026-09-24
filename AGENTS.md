@@ -45,6 +45,19 @@ All issue reports and pull requests should be created and submitted by a human c
 Do not create/submit issues, pull requests or any engagement to the community on behalf of the user. \
 AI may be used for assistance, but a human must review, take responsibility for, and submit the final changes.
 
+### Exception: pushing to the user's own fork
+
+When the user explicitly directs so in the active session, an AI agent may push
+locally-committed code to the user's own fork (`<user>/qBittorrent`).  This
+exception exists so the user can hand off the mechanical git step after the AI
+has already prepared and locally-committed the changes.
+
+The exception does NOT extend to:
+- Opening pull requests from the fork back to `qbittorrent/qBittorrent`
+- Pushing directly to `qbittorrent/qBittorrent`
+- Filing issues on `qbittorrent/qBittorrent`
+- Any other public-facing GitHub action
+
 ## Document Purpose
 
 This document provides policy and guidelines for AI operations. \
